@@ -16,30 +16,31 @@ class Board extends React.Component {
   renderSquare(i) {
     return (
       <Square 
+      key={i}
       value={this.props.squares[i]}
       onClick={() => this.props.onClick(i)}
       />
     )
   }
-
+  renderBoard() {
+    // for loops can't be used in react render
+    const board = [];
+    for (let i = 0; i < 3; i ++) {
+      const row = [];
+      for (let j = 0; j < 3; j ++) {
+        row.push(this.renderSquare(i*3 + j));
+      }
+      
+      board.push(
+        <div className="board-row">{row}</div>
+      );
+    }
+    return board;
+  }
   render() {
     return (
       <div>
-       <div className="board-row">
-          {this.renderSquare(0)}
-          {this.renderSquare(1)}
-          {this.renderSquare(2)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(3)}
-          {this.renderSquare(4)}
-          {this.renderSquare(5)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(6)}
-          {this.renderSquare(7)}
-          {this.renderSquare(8)}
-        </div>
+        {this.renderBoard()}
       </div>
     );
   }
@@ -75,11 +76,13 @@ class Game extends React.Component {
 
     // change value of copy of last squares state history element depending on xIsNext current value
     squares[i] = this.state.xIsNext ? 'X' : 'O';
+    
 
     // append changed copy to this.state.history 
     this.setState({
       history: history.concat([{
         squares: squares,
+        i: i,
       }]),
       stepNumber: history.length,
       // swich between true - false on each click
@@ -88,6 +91,7 @@ class Game extends React.Component {
   }
   
   jumpTo(step) {
+    addActiveClass (step);
     this.setState({
       stepNumber: step,
       xIsNext: (step % 2) === 0,
@@ -96,13 +100,16 @@ class Game extends React.Component {
 
   render () {
     // determine history value on each render
+
     const history = this.state.history;
     const current = history[this.state.stepNumber];
     const winner = calculateWinner(current.squares);
 
     const moves = history.map((step, move) => {
       // description of button
-      const desc = move ? 'Go to move #' + move : 'Go to game start';
+      const desc = move ? 
+      `Go to move #${move} (row: ${Math.floor(step['i'] / 3)}, col: ${step['i'] % 3 })` : 
+      `Go to game start`;
       return (
         <li key={move}>
           <button onClick={() => this.jumpTo(move)}>{desc}</button>
@@ -157,4 +164,14 @@ function calculateWinner (squares) {
     }
     return null;
   }
+}
+
+function addActiveClass (step) {
+  // Bold the currently selected item in the move list
+  const moves = document.querySelectorAll('li');
+  const active = document.querySelector('.active-one');
+  if (active) {
+    active.classList.remove('active-one');
+  }
+  moves[step].classList.add('active-one');
 }
