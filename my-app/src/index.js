@@ -25,14 +25,14 @@ class Board extends React.Component {
   renderBoard() {
     // for loops can't be used in react render
     const board = [];
-    for (let i = 0; i < 3; i ++) {
+    for (let k = 0; k < 3; k ++) {
       const row = [];
       for (let j = 0; j < 3; j ++) {
-        row.push(this.renderSquare(i*3 + j));
+        row.push(this.renderSquare(k*3 + j));
       }
       
       board.push(
-        <div className="board-row">{row}</div>
+        <div key={k} className="board-row">{row}</div>
       );
     }
     return board;
@@ -65,6 +65,7 @@ class Game extends React.Component {
 
     // take last element from history 
     const current = history[history.length - 1];
+    
 
     // create a copy of last squares state from history 
     const squares = current.squares.slice();
@@ -89,9 +90,19 @@ class Game extends React.Component {
       xIsNext: !this.state.xIsNext,
     });
   }
+
+  addActiveClass (step) {
+    // Bold the currently selected item in the move list
+    const moves = document.querySelectorAll('li');
+    const active = document.querySelector('.active-one');
+    if (active) {
+      active.classList.remove('active-one');
+    }
+    moves[step].classList.add('active-one');
+  }
   
   jumpTo(step) {
-    addActiveClass (step);
+    this.addActiveClass (step);
     this.setState({
       stepNumber: step,
       xIsNext: (step % 2) === 0,
@@ -121,7 +132,14 @@ class Game extends React.Component {
     if (winner) {
       status = 'Winner: ' + winner;
     } else {
-      status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+      const testIfNotNUll = current.squares.some((el, i) => {
+        return el === null;
+      })
+      if (!testIfNotNUll) {
+        status = 'Draw';
+      } else {
+        status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+      }
     }
     return (
       <div className="game">
@@ -157,21 +175,20 @@ function calculateWinner (squares) {
     [0, 4, 8],
     [2, 4, 6],
   ];
+  console.log(lines.length);
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      let identicSquares = document.querySelectorAll('.square');
+      for(let j = 0; j < lines[i].length; j ++) {
+        for (let k = 0; k < 9; k ++) {
+          if (k === lines[i][j]) {
+            identicSquares[k].style.backgroundColor = 'yellow';
+          } 
+        }
+      }
       return squares[a];
     }
-    return null;
   }
-}
-
-function addActiveClass (step) {
-  // Bold the currently selected item in the move list
-  const moves = document.querySelectorAll('li');
-  const active = document.querySelector('.active-one');
-  if (active) {
-    active.classList.remove('active-one');
-  }
-  moves[step].classList.add('active-one');
+  return null;
 }
